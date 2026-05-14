@@ -38,12 +38,31 @@ endclass
 // --- MONITOR ---
 class data_monitor extends uvm_monitor;
     `uvm_component_utils(data_monitor)
+
+//Func covergroup
+    covergroup cg_inputs;
+        option.per_instance = 1;
+
+        // equal input
+        cp_equality: coverpoint (vif.inp1_i == vif.inp2_i) {
+            bins matched    = {1};
+            bins mismatched = {0};
+        }
+
+       
+        cp_inp1_range: coverpoint vif.inp1_i {
+            bins low  = {[0:255]};
+            bins mid  = {[256:767]};
+            bins high = {[768:1023]};
+        }
+    endgroup
     virtual data_comparator_if vif;
     uvm_analysis_port #(data_item) ap;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
         ap = new("ap", this);
+	cg_inputs = new();
     endfunction
 
     function void build_phase(uvm_phase phase);
@@ -56,13 +75,17 @@ class data_monitor extends uvm_monitor;
         data_item item;
         forever begin
             @(posedge vif.clk);
-            item = data_item::type_id::create("item");
-            item.inp1_i  = vif.inp1_i;
-            item.inp2_i  = vif.inp2_i;
-            item.valid_i = vif.valid_i;
-            item.outp_o  = vif.outp_o;
-            item.valid_o = vif.valid_o;
-            ap.write(item);
+		if (vif.valid_i && vif.rstn) begin
+                    cg_inputs.sample();
+
+	    item = data_item::type_id::create("item");
+	    item.inp1_i  = vif.inp1_i;
+	    item.inp2_i  = vif.inp2_i;
+	    item.valid_i = vif.valid_i;
+	    item.outp_o  = vif.outp_o;
+	    item.valid_o = vif.valid_o;
+	    ap.write(item);
+	    end	
         end
     endtask
 endclass

@@ -1,0 +1,11 @@
+# Скомпилированные файлы Verilator
+sim/obj_dir/
+
+# Логи и временные файлы
+sim/*.log
+sim/*.vcd
+
+# Файлы отчетов о покрытии (Coverage)
+sim/*.dat
+sim/*.info
+sim/coverage_html/
